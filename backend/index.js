@@ -10,6 +10,10 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
+
+//Import Routes
+const submissionsRoute = require('./routes/submissions');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
