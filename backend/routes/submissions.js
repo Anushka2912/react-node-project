@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Submission = require('../models/Submission');
 
-//Post: Create a new submission
+//POST: Create a new submission
 router.post('/', async(req, res) => {
     const {name, email, message} = req.body;
 
@@ -23,14 +23,14 @@ router.post('/', async(req, res) => {
 
 //GET: Fetch all submissions with pagination
 router.get('/', async(req, res) => {
-    const {page = 1, limit = 10, serach = '', sortBy = 'timestamp', order = 'desc'} = req.query;
+    const {page = 1, limit = 10, search = '', sortBy = 'timestamp', order = 'desc'} = req.query;
 
     try {
         const submissions = await Submission.find({
             $or: [
                 { name: { $regex: search, $options: 'i'} },
-                { email: { $regex: serach, $options: 'i'} },
-                { message: { $regex: serach, $options: 'i'} },
+                { email: { $regex: search, $options: 'i'} },
+                { message: { $regex: search, $options: 'i'} },
             ],
         })
         .sort({ [sortBy]: order === 'desc' ? -1 : 1})
@@ -71,10 +71,11 @@ router.put('/:id', async(req, res) => {
 //GET: Get the total count of submissions
 router.get('/count', async(req, res) => {
     try {
-        const count = await Submission.countSubmissions();
+        const count = (await Submission.find()).length;
         res.status(200).json({count});
     }
     catch(err) {
+        console.log({err});
         res.status(500).json({error: "Failed to count submissions"});
     }
 });
