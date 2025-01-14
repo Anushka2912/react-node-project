@@ -20,6 +20,9 @@ mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopol
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection failed:", err));
 
+// Use routes
+app.use('/submissions', submissionsRoute);
+
 // Routes
 app.get("/", (req, res) => res.send("API is running"));
 
