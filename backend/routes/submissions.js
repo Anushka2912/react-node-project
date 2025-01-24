@@ -23,23 +23,41 @@ router.post('/', async(req, res) => {
 
 //GET: Fetch all submissions with pagination
 router.get('/', async(req, res) => {
-    const {page = 1, limit = 10, search = '', sortBy = 'timestamp', order = 'desc'} = req.query;
+    const {
+        page = 1,
+        limit = 10,
+        search = "",
+        sortBy = "timestamp",
+        order = "asc",
+        emailDomain
+    } = req.query;
 
     try {
-        const submissions = await Submission.find({
-            $or: [
+        let query ={};
+        
+        if(search) {
+            query.$or = [
                 { name: { $regex: search, $options: 'i'} },
                 { email: { $regex: search, $options: 'i'} },
-                { message: { $regex: search, $options: 'i'} },
-            ],
-        })
-        .sort({ [sortBy]: order === 'desc' ? -1 : 1})
+            ];
+        }
+
+        if(emailDomain) {
+            query.email = { $regex: `@${emailDomain}$`, $options: 'i' };
+        }
+
+        const sortOptions = { [sortBy]: order === 'desc' ? -1 : 1};
+
+        const submissions = await Submission.find(query)
+        .sort(sortOptions)
         .skip((page - 1) * limit)
         .limit(parseInt(limit));
 
         const totalSubmissions = await Submission.countDocuments();
 
-        res.status(200).json({ submissions, totalSubmissions });
+        const totalPages = Math.ceil(totalSubmissions / limit);
+
+        res.status(200).json({ submissions, totalSubmissions, totalPages });
     } 
     catch (error) {
         res.status(500).json({ error: 'Failed to fetch submissions' });
@@ -48,11 +66,12 @@ router.get('/', async(req, res) => {
 
 //PUT: Update a submission by ID
 router.put('/:id', async(req, res) => {
+    const { id } = req.params;
     const {name, email, message} = req.body;
 
     try {
         const updatedSubmission = await Submission.findByIdAndUpdate(
-            req.params.id,
+            id,
             {name, email, message},
             { new: true},
         );
